@@ -133,6 +133,8 @@ def summarize(rows: list[dict], key: str) -> list[dict]:
 
 def analyze(root: Path, mapping_path: Path | None = None) -> dict:
     """How: API と Replay を照合し、master・日別・step別・実験別表を出す。"""
+    if not (root / "match_index.csv").is_file():
+        raise FileNotFoundError("同期済みの match_index.csv がありません")
     submissions = read_json(root / "submissions.json", None)
     if submissions is None:
         submissions = read_csv(root / "submissions.csv")

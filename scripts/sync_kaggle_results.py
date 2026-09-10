@@ -35,7 +35,10 @@ def main() -> int:
             code = 0 if state["status"] == "complete" else 2
             if args.analyze:
                 from kaggriculture_sync.analysis import analyze
-                print(json.dumps(analyze(args.output_dir), ensure_ascii=False))
+                result = analyze(args.output_dir)
+                print(json.dumps(result, ensure_ascii=False))
+                if result["audit"]["errors"]:
+                    code = 2
         except Exception as exc:
             print(f"同期失敗: {safe_error(exc)}", file=sys.stderr)
             code = 1

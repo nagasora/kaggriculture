@@ -116,6 +116,7 @@ def sync(source: Source, output: Path, competition: str = "kaggriculture", worke
             row = match_row(sid, episode)
             matches[(sid, row["episode_id"])] = row
         progress(f"submission {sid}: {len(episodes)} returned, {len(union)} archived episodes")
+        write_json(output / "sync_state.json", state)
 
     rows = sorted(matches.values(), key=lambda r: (int(r["submission_id"]), int(r["episode_id"])))
     write_csv(output / "match_index.csv", rows, ["submission_id", "episode_id", "seat", "reward"])
