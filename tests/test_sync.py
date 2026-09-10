@@ -187,3 +187,28 @@ def test_validation_self_play_is_not_counted_in_public_win_rate(tmp_path):
     assert result['experiments'] == []
     assert result['audit']['excluded_from_competitive_summary'] == 2
     assert result['audit']['unknown_competitive_outcomes'] == 0
+
+
+def test_archive_roundtrip_excludes_credentials(tmp_path):
+    from kaggriculture_sync.archive import pack, restore
+    root = tmp_path / 'data'
+    write_json(root / 'submissions.json', [{'ref': 1}])
+    write_json(root / 'kaggle.json', {'key': 'synthetic-secret'})
+    path = tmp_path / 'data.zip'
+    assert pack(root, path)['files'] == 1
+    out = tmp_path / 'restored'
+    assert restore(path, out) == 1
+    assert read_json(out / 'submissions.json') == [{'ref': 1}]
+    assert not (out / 'kaggle.json').exists()
+
+
+def test_archive_rejects_path_traversal_before_writing(tmp_path):
+    import zipfile
+    from kaggriculture_sync.archive import restore
+    path = tmp_path / 'unsafe.zip'
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.writestr('submissions.json', '[]')
+        archive.writestr('../outside.json', '{}')
+    with pytest.raises(ValueError):
+        restore(path, tmp_path / 'out')
+    assert not (tmp_path / 'out/submissions.json').exists()

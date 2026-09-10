@@ -29,7 +29,7 @@ python scripts/sync_kaggle_results.py --analyze
 python scripts/analyze_kaggle_results.py
 ```
 
-17テストで、ページング、同一Replay重複、再実行時のダウンロード省略、案内文・ID不一致の修復、中断後の回復、APIから消えた対戦の保持、seat=0/reward=0/欠損の区別、E003A/B識別、逆転時刻、APIとReplayの不一致、validation除外を確認した。
+19テストで、ページング、同一Replay重複、再実行時のダウンロード省略、案内文・ID不一致の修復、中断後の回復、APIから消えた対戦の保持、seat=0/reward=0/欠損の区別、E003A/B識別、逆転時刻、APIとReplayの不一致、validation除外、秘密情報を除くアーカイブ、復元パスの検証を確認した。
 
 実APIによる初回回収の最終結果は、実行データ内の `sync_state.json` と `analysis/analysis_audit.json` を正とする。認証情報とReplay本文は公開リポジトリに含めない。
 

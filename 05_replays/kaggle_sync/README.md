@@ -57,3 +57,12 @@ ReplayはJSONの構造・完了状態・EpisodeIdを検証してからファイ�
 提出一覧は全ページ取得する。対戦API `ListSubmissionEpisodes` は現行SDKにページ引数がない。**APIが返す全件を回収するが、削除済み・非公開・APIが返さない過去対戦まで全件あるとは保証しない。** 以前取得した対戦は次回APIから消えても保持する。
 
 通信障害・429・5xxは上限付きで再試行し、401/403などは無限に再試行しない。失敗は終了コードと状態に出し、次回は残件を再取得する。初回は数GBになりうる。公開GitHubにはデータをcommitせず、Drive等の永続保存先で運用する。
+
+## アーカイブの保存と復元
+
+```bash
+python scripts/archive_kaggle_results.py pack --archive /path/kaggriculture_sync_latest.zip
+python scripts/archive_kaggle_results.py restore --archive /path/kaggriculture_sync_latest.zip
+```
+
+アーカイブは同期データの許可パスだけを含む。認証ファイルは対象外。復元は既存索引・Replayを更新するため、同期プロセス停止中に実行する。
