@@ -1,0 +1,18 @@
+# Why not version credentials or private match archives in this public repository.
+kaggle.json
+**/kaggle.json
+.env
+.env.*
+!.env.example
+.kaggle/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+05_replays/kaggle_sync/*
+!05_replays/kaggle_sync/README.md
+episode-*-replay.json
+episode-*-logs.json
+*.partial
+
