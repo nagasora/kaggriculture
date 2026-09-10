@@ -1,83 +1,47 @@
 #!/usr/bin/env python3
+"""How: 既存コマンドから差分同期・任意の繰り返し実行を起動する。"""
 from __future__ import annotations
 
 import argparse
-import csv
 import json
-import subprocess
+import sys
+import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-def run_kaggle(*args: str) -> str:
-    # Why not shell=True: IDs and arguments must never be interpreted by a shell.
-    result = subprocess.run(["kaggle", *args], check=True, capture_output=True, text=True)
-    return result.stdout
-
-
-def rows(text: str) -> list[dict[str, str]]:
-    return list(csv.DictReader(text.splitlines()))
-
-
-def get_id(row: dict[str, str], candidates: tuple[str, ...]) -> str | None:
-    normalized = {k.lower().replace("_", "").replace(" ", ""): v for k, v in row.items()}
-    for candidate in candidates:
-        value = normalized.get(candidate.lower().replace("_", "").replace(" ", ""))
-        if value:
-            return value.strip()
-    return None
-
-
-def sync(output: Path, competition: str = "kaggriculture") -> dict[str, int]:
-    # How: refresh indexes every run and fetch only replay files that are still missing.
-    episode_dir = output / "episodes"
-    replay_dir = output / "replays"
-    episode_dir.mkdir(parents=True, exist_ok=True)
-    replay_dir.mkdir(parents=True, exist_ok=True)
-
-    submission_text = run_kaggle("competitions", "submissions", competition, "-v")
-    (output / "submissions.csv").write_text(submission_text, encoding="utf-8")
-    submissions = rows(submission_text)
-    matches: list[dict[str, str]] = []
-    downloaded = 0
-
-    for submission in submissions:
-        submission_id = get_id(submission, ("submissionId", "id", "ref"))
-        if not submission_id:
-            continue
-        episode_text = run_kaggle("competitions", "episodes", submission_id, "-v")
-        (episode_dir / f"{submission_id}.csv").write_text(episode_text, encoding="utf-8")
-        for episode in rows(episode_text):
-            episode_id = get_id(episode, ("episodeId", "id"))
-            if not episode_id:
-                continue
-            matches.append({"submission_id": submission_id, **episode})
-            replay_path = replay_dir / f"{episode_id}.json"
-            if not replay_path.exists():
-                replay_path.write_text(run_kaggle("competitions", "replay", episode_id), encoding="utf-8")
-                downloaded += 1
-
-    index = output / "match_index.csv"
-    if matches:
-        fields = list(dict.fromkeys(k for row in matches for k in row))
-        with index.open("w", encoding="utf-8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fields)
-            writer.writeheader()
-            writer.writerows(matches)
-    else:
-        index.write_text("", encoding="utf-8")
-
-    state = {"submissions": len(submissions), "episodes": len(matches), "new_replays": downloaded}
-    (output / "sync_state.json").write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-    return state
+from kaggriculture_sync.client import KaggleSource
+from kaggriculture_sync.sync import safe_error, sync
 
 
 def main() -> int:
+    """How: 一回同期か指定間隔の同期を選び、失敗は終了コードに反映する。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, default=Path("05_replays/kaggle_sync"))
+    parser.add_argument("--competition", default="kaggriculture")
+    parser.add_argument("--workers", type=int, default=3, choices=range(1, 5))
+    parser.add_argument("--max-replays", type=int)
+    parser.add_argument("--interval-seconds", type=int, default=0)
+    parser.add_argument("--analyze", action="store_true")
     args = parser.parse_args()
-    state = sync(args.output_dir)
-    print(json.dumps(state, ensure_ascii=False))
-    return 0
+    if args.max_replays is not None and args.max_replays < 0:
+        parser.error("--max-replays は0以上にしてください")
+    if args.interval_seconds and args.interval_seconds < 300:
+        parser.error("同期間隔は300秒以上にしてください")
+    while True:
+        try:
+            state = sync(KaggleSource(), args.output_dir, args.competition, args.workers, args.max_replays)
+            print(json.dumps(state, ensure_ascii=False))
+            code = 0 if state["status"] == "complete" else 2
+            if args.analyze:
+                from kaggriculture_sync.analysis import analyze
+                print(json.dumps(analyze(args.output_dir), ensure_ascii=False))
+        except Exception as exc:
+            print(f"同期失敗: {safe_error(exc)}", file=sys.stderr)
+            code = 1
+        if not args.interval_seconds:
+            return code
+        time.sleep(args.interval_seconds)
 
 
 if __name__ == "__main__":

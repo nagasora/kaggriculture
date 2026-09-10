@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kaggriculture-sync"
+version = "0.2.0"
+description = "Kaggriculture submission, episode and replay synchronization"
+requires-python = ">=3.10"
+dependencies = ["kaggle==2.2.4", "kagglesdk==0.1.37"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
