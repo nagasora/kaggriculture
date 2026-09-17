@@ -1,0 +1,14 @@
+{
+  "experiment_id": "E019",
+  "rounds": [
+    {"name": "screen", "environment": "reconstructed", "candidates": 48, "keep": 12, "seeds": 2, "seats": 2, "opponents": 3, "games": 576},
+    {"name": "league", "environment": "reconstructed", "candidates": 12, "keep": 4, "seeds": 4, "seats": 2, "opponents": 5, "games": 480},
+    {"name": "official_final_gate", "environment": "kaggle-environments==1.32.7", "candidates": 4, "keep": 3, "seeds": 4, "seats": 2, "opponents": 4, "games": 128}
+  ],
+  "protected_holdout": "37000-37031",
+  "round1_seed_start": 6100000,
+  "round2_seed_start": 6200000,
+  "official_seed_start": 6500000,
+  "promotion_metric": "robust_score",
+  "principle": "global algorithm-family search first; local tuning only after top-family concentration"
+}

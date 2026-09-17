@@ -1,0 +1,13 @@
+{
+  "experiment_id": "E019",
+  "name": "Global Policy Search Arena",
+  "objective": "Locate the strongest policy-family region before any local tuning.",
+  "population": 48,
+  "families": ["fixed", "phase_router", "heuristic_router", "replay_router", "route_ppo"],
+  "successive_halving": "48 -> 12 -> 4 -> 3",
+  "primary_selection": "cross-opponent robust win score",
+  "diagnostic_only": ["coin margin", "SELL F1", "teacher agreement"],
+  "protected_holdout": "37000-37031 remains closed",
+  "failure_policy": "invalid/error candidate is penalized, but the global run continues",
+  "stopping_rule": "local hyperparameter tuning is forbidden until round2 shows concentration in one or two algorithm families"
+}
