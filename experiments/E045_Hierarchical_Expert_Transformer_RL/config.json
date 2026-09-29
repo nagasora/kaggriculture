@@ -1,0 +1,22 @@
+{
+  "experiment": "E045_Hierarchical_Expert_Transformer_RL",
+  "block_turns": 72,
+  "route_switch_last_step": 144,
+  "base_expert": "E043_MajkelBC_Compiled4",
+  "history_blocks": 4,
+  "residual_modes": ["KEEP", "ORDER_ONLY", "FRONT_RUN", "LIQUIDITY_GUARD"],
+  "training": {
+    "stage_1": "elite behavior cloning / representation pretrain",
+    "stage_2": "counterfactual AWR on learner-visited macro states",
+    "stage_3": "KL-regularized league PPO only after promotion gate"
+  },
+  "promotion": {
+    "baseline": "E043",
+    "fresh_seed_score_delta_min": 0.03,
+    "worst_family_score_delta_min": 0.0,
+    "require_both_seats": true,
+    "require_no_future_inputs": true,
+    "require_official_loader_smoke": true,
+    "automatic_kaggle_submission": false
+  }
+}
